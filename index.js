@@ -1,39 +1,72 @@
-const expres = require('express'),
+const express = require('express'),
     http = require('http'),
-    app = expres(),
+    path = require('path'),
+    app = express(),
+    favicon = require('serve-favicon'),
+    logger = require('morgan'),
+    bodyParser = require('body-parser'),
     cors = require('cors'),
-    puerto = 3000;
+    config = require('./config'),
+    mongoose = require('mongoose')
+;
 
+//todos los use
 app.use(cors())
+app.options('*',cors())
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({'extended':'false'}));
+app.use(express.static(path.join(__dirname, 'dist')));
+app.use('/static', express.static('node_modules'));
+
+//routas require
+const login = require('./Routes/login'),
+      empresa = require('./Routes/empresa');
+
+/**
+ * Use Routes
+ */
+app.use('/', login);
+app.use('/empresas',empresa)
 
 const server = http.Server(app)
+const io = require('socket.io')(server,{
+    cors:true,
+    origin: config.URL_SOCKET_IO_GET
+})
+global.io = io;
 
-const io = require('socket.io')(server)
 
-app.options('*',cors())
 
-server.listen(puerto, function () {
-    console.log("****")
+/**
+ * Conectado moongose
+ * mongoose.Promise = require('bluebird');
+ * mongoose.connect('mongodb://localhost/mevn-chat', { promiseLibrary: require('bluebird') })
+ *   .then(() =>  console.log('connection succesful'))
+ *   .catch((err) => console.error(err));
+ */
+
+server.listen(config.PORT, function () {
+    console.log("**** puerto "+config.PORT)
 })
 
 app.get('/', (req, resp) => {
     resp.send("Hola mundo")
 })
 
-app.use('/static', expres.static('node_modules'));
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+
 
 io.on('connection', function (socket) {
-    console.log("Connected succesfully to the socket ...");
+    console.log("Connected succesfully to the socket ..."+socket.id);
 
-    var news = [
-        {title: 'The cure of the Sadness is to play Videogames', date: '04.10.2016'},
-        {title: 'Batman saves Racoon City, the Joker is infected once again', date: '05.10.2016'},
-        {title: "Deadpool doesn't want to do a third part of the franchise", date: '05.10.2016'},
-        {title: 'Quicksilver demand Warner Bros. due to plagiarism with Speedy Gonzales', date: '04.10.2016'},
-    ];
 
-    // Enviar noticias al socket
-    socket.emit('news', news);
 
     socket.on('disconnect', function () {
         console.log("**** desconectado*****");
