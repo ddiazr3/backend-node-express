@@ -1,9 +1,17 @@
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
-var EmpresaEchema = new mongoose.Schema({
-    name: String,
-    created_date: { type: Date, default: Date.now }
+var EmpresaEschema = new mongoose.Schema({
+    empresa: String,
+    direccion: String,
+    telefono: String,
+    tiempo: Integer,
+    imprime: {type: Boolean, default: false},
+    empresahijo: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
+    },
+    created_date: {type: Date, default: Date.now}
 })
 
-module.exports = mongoose.model('Empresa', EmpresaEchema)
+module.exports = mongoose.model('Empresa', EmpresaEschema)

@@ -1,11 +1,11 @@
 const express = require('express'),
     router = express.Router(),
-    empresaController = require('../Controller/EmpresaController');
+    ingresoEgresoController = require('../Controller/IngresoEgresoController');
 
 // index
 router.get('/', function (req, res, next) {
 
-    const empresa = empresaController.index(req)
+   // const empresa = empresaController.index(req)
 
     res.send(empresa)
 })
