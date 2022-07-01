@@ -10,6 +10,7 @@ var UsuarioEschema = new mongoose.Schema({
     dpi: {type: String, default: null},
     usuariocreacion: {type: mongoose.Schema.Types.ObjectId, default: null},
     activo: {type: Boolean, default: true},
+    token: { type: String, default: null},
     created_date: {type: Date, default: Date.now}
 })
 

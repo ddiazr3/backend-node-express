@@ -7,8 +7,9 @@ const express = require('express'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
     config = require('./config'),
-    mongoose = require('mongoose')
-;
+    mongoose = require('mongoose');
+
+require('./Config/database');
 
 //todos los use
 app.use(cors())
@@ -35,18 +36,6 @@ global.io = io;
 /**
  * Conectado moongose
  */
-const DATABASE_URL = process.env.DATABASE_URL || 'http://localhost:27017';
-
-mongoose.connect(`mongodb://${DATABASE_URL}/controlTicket`, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => {
-    console.log("Mongo conectado")
-}).catch(err => {
-    console.log(`error db ${err.message}`)
-    process.exit(1)
-});
-
 
 server.listen(config.PORT, function () {
     console.log("**** puerto " + config.PORT)
