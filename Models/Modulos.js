@@ -2,9 +2,14 @@ const mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 var ModulosEschema = new mongoose.Schema({
-    modulo: {type: String, required: true},
-    path: String,
+    name: {type: String, required: true},
+    path: { type: String, default: null},
     icon: String,
+    orden: { type: "Number"},
+    modulopadre: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
+    },
     created_date: {type: Date, default: Date.now}
 })
 
