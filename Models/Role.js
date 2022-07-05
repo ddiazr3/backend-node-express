@@ -3,7 +3,8 @@ const mongoose = require('mongoose'),
 
 var RoleEschema = new mongoose.Schema({
     role: {type: String, required: true},
-    description: String,
+    description: {type: String, default: null},
+    estado: {type: Boolean, default: true},
     usuariocreacion: {
         type: mongoose.Schema.Types.ObjectId,
         default: null

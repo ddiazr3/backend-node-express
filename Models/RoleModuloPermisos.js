@@ -3,10 +3,12 @@ const mongoose = require('mongoose'),
 
 var RoleModuloPermisosEschema = new mongoose.Schema({
     modulopermiso: {
-        type: mongoose.Schema.Types.ObjectId
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ModuloPermisos'
     },
     role: {
-        type: mongoose.Schema.Types.ObjectId
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role'
     },
     created_date: {type: Date, default: Date.now}
 })

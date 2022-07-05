@@ -1,30 +1,20 @@
 const express = require('express'),
     router = express.Router(),
-    roleController = require('../Controller/RoleController');
+    { index, store, edit , update, eliminar} = require('../Controller/RoleController');
 
 // index
-router.get('/', function (req, res, next) {
-    res.send(empresa)
-})
+router.get('/', index)
 
 // store
-router.post('/',function (req, res, next) {
-
-})
+router.post('/',store)
 
 //edit
-router.get('/:id',function (req, res, next) {
-
-})
+router.get('/edit/:id',edit)
 
 //Actualizar
-router.put('/:id', function (req, res, next) {
-
-})
+router.put('/:id', update)
 
 //Eliminar
-router.delete('/:id', function (req, res, next) {
-
-})
+router.delete('/:id',eliminar)
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require('express'),
     router = express.Router(),
-    { index, permisos, store, edit, update, eliminar } = require('../Controller/ModulosController');
+    { index, permisos, store, edit, update, eliminar, modulos} = require('../Controller/ModulosController');
 
 // index
 router.get('/', index)
@@ -19,5 +19,8 @@ router.put('/:id', update)
 //
 // //Eliminar
 router.delete('/:id',eliminar)
+
+//Muestra modulos
+router.get('/modulos',modulos)
 
 module.exports = router;

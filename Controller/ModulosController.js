@@ -1,10 +1,8 @@
 const Modulos = require('../Models/Modulos'),
     Permisos = require('../Models/Permisos'),
     ModuloPermisos = require('../Models/ModuloPermisos'),
-    mongoose = require("mongoose"),
-    bcrypt = require("bcrypt")
-const Usuarios = require("../Models/Usuarios");
-Joi = require("@hapi/joi");
+    Usuarios = require("../Models/Usuarios"),
+    Joi = require("@hapi/joi");
 
 const schemaModulo = Joi.object({
     name: Joi.string().min(1).max(50).required(),
@@ -175,7 +173,7 @@ const update = async (req, res) => {
             }
         })
     permisos.forEach((per) => {
-        console.log("guardando " + per+ " modulo id "+ id)
+        console.log("guardando " + per + " modulo id " + id)
         const newPermisoModulo = new ModuloPermisos({
             permiso: per,
             modulo: id
@@ -194,16 +192,39 @@ const update = async (req, res) => {
 const eliminar = (req, res) => {
     const id = req.params.id
     //eliminamos todos los permisos y se agregan nuevos
-    try{
+    try {
 
-        console.log("eliminando modulo "+id)
+        console.log("eliminando modulo " + id)
         ModuloPermisos.deleteMany({modulo: id}).exec();
         Modulos.findByIdAndRemove(id).exec();
         return res.status(200).send({success: "Eliminado"});
-    }catch (e) {
-        return res.status(200).send({error:e});
+    } catch (e) {
+        return res.status(200).send({error: e});
     }
 
+
+}
+
+//metodo que muestra los modulos con permisos
+const modulos = async (req, res) => {
+
+    try {
+        const modulos = await Modulos.find({path: {$ne: null}})
+            .exec()
+        const MP = [];
+        for (const mod of modulos) {
+            const mpermisos = await ModuloPermisos
+                .find({modulo: mod._id},{modulo:0, created_date:0})
+                .populate({path: 'permiso', select: 'nombrefriendly -_id'}).exec()
+            let data = []
+            data [0] = mod.name
+            data [1] = mpermisos
+            MP.push(data)
+        }
+        res.status(200).json(MP)
+    } catch (e) {
+        return res.status(400).json({error: "No se encontraron datos"})
+    }
 
 }
 
@@ -214,5 +235,6 @@ module.exports = {
     store,
     edit,
     update,
-    eliminar
+    eliminar,
+    modulos
 }
