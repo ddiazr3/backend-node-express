@@ -10,7 +10,6 @@ const schemaModulo = Joi.object({
     permisosrole: Joi.array().required(),
 })
 
-
 // index
 const index = async (req, res) => {
 
@@ -26,6 +25,8 @@ const index = async (req, res) => {
 
 //almacena y actualiza
 const store = async (req, res) => {
+
+    console.log("guardando la informacion")
 
     const {role, descripcion, permisosrole = [], empresasids = []} = req.body
 
@@ -90,6 +91,7 @@ const edit = async (req, res) => {
     }
 }
 
+//actualiza todo el rol con sus permisos
 const update = async (req, res) => {
 
     const id = req.params.id

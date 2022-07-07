@@ -2,7 +2,7 @@ const express = require('express'),
     router = express.Router();
 // index
 router.get('/', function (req, res, next) {
-    res.send(empresa)
+    res.send("accesodio")
 })
 
 // store
