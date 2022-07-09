@@ -1,33 +1,26 @@
 const express = require('express'),
     router = express.Router(),
-    empresaController = require('../Controller/EmpresaController');
+    { index, store, edit, update, eliminar, catalogos, activar } = require('../Controller/EmpresaController');
 
 // index
-router.get('/', function (req, res, next) {
-
-    const empresa = empresaController.index(req)
-
-    res.send(empresa)
-})
-
-// store
-router.post('/',function (req, res, next) {
-
-})
+router.get('/',index)
 
 //edit
-router.get('/:id',function (req, res, next) {
+router.get('/catalogos',catalogos)
 
-})
+// store
+router.post('/',store)
+
+//edit
+router.get('/edit/:id',edit)
 
 //Actualizar
-router.put('/:id', function (req, res, next) {
+router.put('/:id', update)
 
-})
+//Desactiva
+router.delete('/:id', eliminar)
 
-//Eliminar
-router.delete('/:id', function (req, res, next) {
-
-})
+//Activa
+router.get('/activar/:id', activar)
 
 module.exports = router;

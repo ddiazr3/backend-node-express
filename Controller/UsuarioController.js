@@ -1,17 +1,25 @@
 const Usuarios = require('../Models/Usuarios'),
+    Empresas = require('../Models/Empresa'),
+    UsuarioEmpresa = require('../Models/UsuarioEmpresa'),
+    Roles = require('../Models/Role'),
     mongoose = require("mongoose"),
     bcrypt = require("bcrypt")
+const Tarifas = require("../Models/Tarifas");
+const TarifaEmpresa = require("../Models/TarifasEmpresa");
 Joi = require("@hapi/joi");
 
 const schemaUsuairo = Joi.object({
-    nombre: Joi.string().min(6).max(25).required(),
-    email: Joi.string().min(6).max(25).required().email(),
-    password: Joi.string().min(6).max(25).required(),
+    nombre: Joi.string().min(2).max(25).required(),
+    email: Joi.string().min(2).max(25).required().email(),
+    password: Joi.string().min(2).max(25).required(),
+    roleid: Joi.string().required(),
+    empresasids: Joi.array().min(1).required(),
 })
 
 const schemaUsuairoUpdate = Joi.object({
     nombre: Joi.string().min(6).max(25).required(),
     email: Joi.string().min(6).max(25).required().email(),
+    roleid: Joi.required(),
 })
 //muestra el listado de usuarios activos
 const index = async (req, res) => {
@@ -116,12 +124,14 @@ const exportar = async (req, res) => {
 //almacena y actualiza
 const store = async (req, res) => {
 
-    const {nombre, direccion, telefono, dpi, email, password} = req.body
+    const {nombre, direccion, telefono, dpi, email, password, roleid = null, empresasids = []} = req.body
 
     const {error} = schemaUsuairo.validate({
         nombre: nombre,
         email: email,
-        password: password
+        password: password,
+        roleid: roleid,
+        empresasids: empresasids
     })
 
     if (error) {
@@ -129,6 +139,7 @@ const store = async (req, res) => {
             {error: error.details[0].message}
         )
     }
+
 
     const userExist = await Usuarios.findOne({email: email})
 
@@ -145,6 +156,7 @@ const store = async (req, res) => {
         telefono: telefono,
         dpi: dpi,
         email: email,
+        role: roleid,
         password: passwordCrypt
     })
 
@@ -152,8 +164,25 @@ const store = async (req, res) => {
         if (error) {
             res.send(error)
         }
-        res.json(result)
     })
+
+
+    //amarrando usuario empresa
+    if(empresasids.length > 0){
+        for (const empIDS of empresasids) {
+            const userEmpresa = new UsuarioEmpresa({
+                usuario: newUser._id,
+                empresa: empIDS,
+            })
+            userEmpresa.save((err, result) => {
+                if (error) {
+                    return res.status(400).send({error: "No se amarro el usuario empresa"});
+                }
+            })
+        }
+    }
+
+    res.status(200).json({error: "Se almaceno con exito"})
 }
 
 //show / edit
@@ -244,6 +273,24 @@ const activar = (req, res) => {
         })
 }
 
+const catalogos = async (req, res) => {
+
+    try {
+        const empresas = await Empresas.find()
+            .exec()
+        const roles = await Roles.find()
+            .exec()
+        const data = {
+            empresas: empresas,
+            roles: roles
+        }
+
+        res.status(200).json(data)
+    } catch (e) {
+        res.status(200).json({error: "Error no encontro data"})
+    }
+};
+
 module.exports = {
     index,
     store,
@@ -251,5 +298,6 @@ module.exports = {
     update,
     eliminar,
     activar,
-    exportar
+    exportar,
+    catalogos
 }

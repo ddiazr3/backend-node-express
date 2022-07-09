@@ -9,6 +9,7 @@ var UsuarioEschema = new mongoose.Schema({
     telefono: {type: String, default: null},
     dpi: {type: String, default: null},
     usuariocreacion: {type: mongoose.Schema.Types.ObjectId, default: null},
+    role: {type: mongoose.Schema.Types.ObjectId, default: null, ref: 'Role'},
     activo: {type: Boolean, default: true},
     token: { type: String, default: null},
     created_date: {type: Date, default: Date.now}
