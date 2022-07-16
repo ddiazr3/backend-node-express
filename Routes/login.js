@@ -4,6 +4,7 @@ const express = require('express'),
     bcrypt = require("bcrypt"),
     Joi = require("@hapi/joi"),
     jwt = require('jsonwebtoken');
+const Usuarios = require("../Models/Usuarios");
 
 const schemaLogin = Joi.object({
     email: Joi.string().min(6).max(255).required().email(),
@@ -32,12 +33,24 @@ router.post('/', async function (req, res) {
         return res.status(400).json({error: 'contraseña no válida'})
     }
 
-    const token = jwt.sign({
-        name: user.name,
-        id: user._id
-    }, "supersecreto")
+    const tokenGenerate = jwt.sign({
+        name: user.nombre,
+        id: user._id,
+        role: user.role
+    }, "supersecreto",{
+        expiresIn: 60 * 60 * 24 // expires in 24 hours
+    })
 
-    user.token = token
+    console.log("token generado = "+tokenGenerate)
+
+    Usuario.findOneAndUpdate({_id: user._id}, {
+            $set: { token : tokenGenerate}
+        }, {new: true},
+        (error, result) => {
+            if (error) {
+                res.send(error)
+            }
+        })
 
     return res.json(user)
 

@@ -11,7 +11,8 @@ var RoleEschema = new mongoose.Schema({
     },
     empresa: {
         type: mongoose.Schema.Types.ObjectId,
-        default: null
+        default: null,
+        ref: 'Empresa'
     },
     created_date: {type: Date, default: Date.now}
 })

@@ -1,10 +1,13 @@
 const Empresa = require('../Models/Empresa'),
     Tarifas = require('../Models/Tarifas'),
     TarifaEmpresa = require('../Models/TarifasEmpresa'),
+    UsuarioEmpresas = require('../Models/UsuarioEmpresa'),
     mongoose = require("mongoose"),
     bcrypt = require("bcrypt")
 const RoleModuloPermisos = require("../Models/RoleModuloPermisos");
 const Roles = require("../Models/Role");
+const {isGod} = require("../middleware/god");
+const UsuarioEmpresa = require("../Models/UsuarioEmpresa");
 Joi = require("@hapi/joi");
 
 const schemaEmpresa = Joi.object({
@@ -16,9 +19,16 @@ const schemaEmpresa = Joi.object({
 //muestra el listado de usuarios activos
 const index = async (req, res) => {
     try {
-        const data = await Empresa.find()
-            .exec()
-
+        let data = []
+        if(isGod(req)){
+            data = await Empresa.find()
+                .exec()
+        }else{
+            let userEmpresas = await UsuarioEmpresas.find({usuario: req.user.id}).populate('empresa').exec()
+            data = userEmpresas.map(el => {
+                return el.empresa
+            })
+        }
         res.status(200).json(data)
     } catch (e) {
         res.status(200).json({error: "Error no encontro data"})
@@ -30,7 +40,6 @@ const catalogos = async (req, res) => {
     try {
         const tarifas = await Tarifas.find()
             .exec()
-
         const data = {
             tarifas: tarifas
         }
@@ -67,7 +76,8 @@ const store = async (req, res) => {
         empresa: empresa,
         direccion: direccion,
         telefono: telefono,
-        tiempo: tiempo
+        tiempo: tiempo,
+        usuariocreacion: req.user.id
     })
 
     newEmpresa.save((error, result) => {
@@ -75,6 +85,7 @@ const store = async (req, res) => {
             return res.status(400).send({error: "No se almaceno la empresa"});
         }
     })
+
     if(tarificacion.length > 0){
         for (const tar of tarificacion) {
             const tarEmpresa = new TarifaEmpresa({
@@ -88,6 +99,19 @@ const store = async (req, res) => {
                 }
             })
         }
+    }
+
+    if(!isGod(req)){
+        //no es el super usuario le agrega esta empresa al usuario para que le aparezca
+        const userEmpresa = new UsuarioEmpresa({
+            usuario: req.user.id,
+            empresa: newEmpresa._id,
+        })
+        userEmpresa.save((err, result) => {
+            if (error) {
+                return res.status(400).send({error: "No se amarro el usuario empresa"});
+            }
+        })
     }
     res.status(200).json({error: "Se almaceno con exito"})
 }

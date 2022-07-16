@@ -1,7 +1,7 @@
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
-var UsuarioEschema = new mongoose.Schema({
+const UsuarioEschema = new mongoose.Schema({
     nombre: {type: String, required: true},
     email: {type: String, required: true},
     password: {type: String, required: true},
@@ -15,4 +15,10 @@ var UsuarioEschema = new mongoose.Schema({
     created_date: {type: Date, default: Date.now}
 })
 
+UsuarioEschema.methods.getEmpresas = function () {
+    return mongoose.model('UsuarioEmpresa').find({usuario: this._id});
+}
+
 module.exports = mongoose.model('Usuario', UsuarioEschema);
+
+

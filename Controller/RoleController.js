@@ -1,5 +1,8 @@
 const Roles = require("../Models/Role"),
-    RoleModuloPermisos = require("../Models/RoleModuloPermisos")
+    RoleModuloPermisos = require("../Models/RoleModuloPermisos"),
+    UsuarioEmpresa = require("../Models/UsuarioEmpresa")
+const {isGod} = require("../middleware/god");
+const {empresasIds} = require("./UsuarioController");
 Joi = require("@hapi/joi");
 
 /**
@@ -7,16 +10,27 @@ Joi = require("@hapi/joi");
  * */
 const schemaModulo = Joi.object({
     role: Joi.string().min(1).max(50).required(),
-    permisosrole: Joi.array().required(),
+    permisosrole: Joi.array().min(1).required(),
+    empresaid: Joi.string().min(1).max(50).required(),
 })
 
 // index
 const index = async (req, res) => {
 
     try {
-        const data = await Roles.find()
-            .exec()
-        res.status(200).json(data)
+        let roles = []
+        if(isGod(req)){
+            roles = await Roles.find()
+                .populate('empresa')
+                .exec()
+        }else{
+            let empIds = await empresasIds(req.user.id)
+            roles = await Roles.find({empresa: {$in : empIds}})
+                .populate('empresa')
+                .exec()
+        }
+
+        res.status(200).json(roles)
     } catch (e) {
         res.status(400).json({error: "No se encontraron datos"})
     }
@@ -26,13 +40,12 @@ const index = async (req, res) => {
 //almacena y actualiza
 const store = async (req, res) => {
 
-    console.log("guardando la informacion")
-
-    const {role, descripcion, permisosrole = [], empresasids = []} = req.body
+    const {role, descripcion, permisosrole = [], empresaid } = req.body
 
     const {error} = schemaModulo.validate({
         role: role,
-        permisosrole: permisosrole
+        permisosrole: permisosrole,
+        empresaid: empresaid
     })
 
     if (error) {
@@ -43,7 +56,8 @@ const store = async (req, res) => {
 
     const newRole = new Roles({
         role: role,
-        description: descripcion
+        description: descripcion,
+        empresa: empresaid
     })
 
     newRole.save((error, result) => {
@@ -71,7 +85,6 @@ const store = async (req, res) => {
 //show / edit
 const edit = async (req, res) => {
     const id = req.params.id
-    console.log("id "+id)
     try {
         const role = await Roles.findById(id).exec();
          const modulePermisos = await RoleModuloPermisos.find({role: id}, {modulopermiso: 1, _id: 0}).exec();
@@ -95,11 +108,12 @@ const edit = async (req, res) => {
 const update = async (req, res) => {
 
     const id = req.params.id
-    const {role, descripcion = null, permisosrole = [], empresasids = []} = req.body
+    const {role, descripcion = null, permisosrole = [], empresaid} = req.body
 
     const {error} = schemaModulo.validate({
         role: role,
-        permisosrole: permisosrole
+        permisosrole: permisosrole,
+        empresaid: empresaid
     })
 
     if (error) {
@@ -112,7 +126,8 @@ const update = async (req, res) => {
 
     const updateRole = {
         role: role,
-        description: descripcion
+        description: descripcion,
+        empresaid: empresaid
     }
 
     Roles.findOneAndUpdate({_id: id}, {

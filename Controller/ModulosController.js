@@ -3,6 +3,9 @@ const Modulos = require('../Models/Modulos'),
     ModuloPermisos = require('../Models/ModuloPermisos'),
     Usuarios = require("../Models/Usuarios"),
     Joi = require("@hapi/joi");
+const Empresas = require("../Models/Empresa");
+const {isGod} = require("../middleware/god");
+const UsuarioEmpresas = require("../Models/UsuarioEmpresa");
 
 const schemaModulo = Joi.object({
     name: Joi.string().min(1).max(50).required(),
@@ -209,19 +212,54 @@ const eliminar = (req, res) => {
 const modulos = async (req, res) => {
 
     try {
-        const modulos = await Modulos.find({path: {$ne: null}})
-            .exec()
+
+        console.log(isGod(req))
+        let modulos = null;
         const MP = [];
-        for (const mod of modulos) {
-            const mpermisos = await ModuloPermisos
-                .find({modulo: mod._id},{modulo:0, created_date:0})
-                .populate({path: 'permiso', select: 'nombrefriendly -_id'}).exec()
-            let data = []
-            data [0] = mod.name
-            data [1] = mpermisos
-            MP.push(data)
+        let empresas = null;
+        if(isGod(req)){
+            modulos = await Modulos.find({path: {$ne: null}}).exec()
+            for (const mod of modulos) {
+                const mpermisos = await ModuloPermisos
+                    .find({modulo: mod._id},{modulo:0, created_date:0})
+                    .populate({path: 'permiso', select: 'nombrefriendly -_id'}).exec()
+                let data = []
+                data [0] = mod.name
+                data [1] = mpermisos
+                MP.push(data)
+            }
+
+            empresas = await Empresas.find()
+                .exec()
         }
-        res.status(200).json(MP)
+        else{
+            modulos = await Modulos.find({path: {$ne: null}}).exec()
+            for (const mod of modulos) {
+                if(mod.path !== '/modulos'){
+                    const mpermisos = await ModuloPermisos
+                        .find({modulo: mod._id},{modulo:0, created_date:0})
+                        .populate({path: 'permiso', select: 'nombrefriendly -_id'}).exec()
+                    let data = []
+                    data [0] = mod.name
+                    data [1] = mpermisos
+                    MP.push(data)
+                }
+
+                let userEmpresas = await UsuarioEmpresas.find({usuario: req.user.id}).populate('empresa').exec()
+                empresas = userEmpresas.map(el => {
+                    return el.empresa
+                })
+
+
+            }
+        }
+
+        let data = {
+            modulos : MP,
+            empresas: empresas
+        }
+
+        res.status(200).json(data)
     } catch (e) {
         return res.status(400).json({error: "No se encontraron datos"})
     }
